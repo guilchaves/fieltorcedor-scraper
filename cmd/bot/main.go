@@ -30,7 +30,7 @@ func main() {
 
 	gameService := service.NewGameService(scraper, telegram)
 
-	scheduler := in.NewScheduler(gameService, "0 7 * * *")
+	scheduler := in.NewScheduler(gameService, "* * * * *")
 	err = scheduler.Start()
 	if err != nil {
 		log.Fatalf("Erro ao iniciar o scheduler: %v", err)

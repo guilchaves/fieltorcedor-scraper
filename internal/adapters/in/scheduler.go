@@ -3,6 +3,7 @@ package in
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/go-co-op/gocron"
 	"github.com/guilchaves/fieltorcedorbot/internal/core/ports"
@@ -15,7 +16,7 @@ type Scheduler struct {
 }
 
 func NewScheduler(gameUseCase ports.GameUseCase, spec string) *Scheduler {
-	s := gocron.NewScheduler(nil)
+	s := gocron.NewScheduler(time.Local)
 	return &Scheduler{
 		gameUseCase: gameUseCase,
 		cron:        s,
