@@ -42,27 +42,31 @@ func (s *FielTorcedorScraper) FetchGames() ([]domain.Game, error) {
 		game := domain.Game{}
 
 		title := article.Find("h2.font24").Text()
-		teams := strings.Split(title, " X ")
-		if len(teams) == 2 {
-			game.HomeTeam = strings.Split(teams[0], " ")[0]
-			game.AwayTeam = strings.Split(teams[1], " ")[0]
+		if strings.Contains(title, " X ") {
+			times := strings.Split(title, " X ")
+			if len(times) == 2 {
+				game.HomeTeam = strings.TrimSpace(times[0])
+				away := strings.TrimSpace(times[1])
+				if idx := strings.Index(away, "("); idx != -1 {
+					away = strings.TrimSpace(away[:idx])
+				}
+				game.AwayTeam = away
+			}
 		}
 
-		game.Competition = article.Find("p.font16:nth-child(2)").Text()
-		game.Round = article.Find("p.font16:nth-child(3)").Text()
+		game.Competition = strings.TrimSpace(
+			article.Find("p.font16.font-gotham-medium.mb-0").First().Text(),
+		)
+		game.Round = strings.TrimSpace(article.Find("p.font16.font-gotham-medium").Eq(1).Text())
+		game.Stadium = strings.TrimSpace(article.Find("p.font16.font-gotham-medium").Last().Text())
 
-		dateTimeStr := article.Find("p.font20").Text()
+		dateTimeStr := strings.TrimSpace(article.Find("p.font20.font-gotham-medium.mb-0").Text())
 		dateTimeStr = strings.ReplaceAll(dateTimeStr, "às", "")
 		dateTimeStr = strings.TrimSpace(dateTimeStr)
-
 		gameTime, err := time.Parse("02/01/2006 15:04", dateTimeStr)
-		if err != nil {
-			fmt.Printf("Erro ao parsear a data e hora: %v\n", err)
-			return
+		if err == nil {
+			game.Date = gameTime
 		}
-		game.Date = gameTime
-
-		game.Stadium = article.Find("p.font16:last-child").Text()
 
 		article.Find("span[data-balloon-pos='down']").
 			Each(func(i int, selection *goquery.Selection) {
