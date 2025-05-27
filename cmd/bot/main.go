@@ -7,6 +7,7 @@ import (
 	"github.com/guilchaves/fieltorcedorbot/internal/adapters/in"
 	"github.com/guilchaves/fieltorcedorbot/internal/adapters/out/fieltorcedor"
 	"github.com/guilchaves/fieltorcedorbot/internal/adapters/out/notification"
+	"github.com/guilchaves/fieltorcedorbot/internal/adapters/out/notifiedgames"
 	"github.com/guilchaves/fieltorcedorbot/internal/core/service"
 	"github.com/joho/godotenv"
 )
@@ -32,7 +33,8 @@ func main() {
 	scraper := fieltorcedor.NewFielTorcedorScraper(siteURL)
 	telegram := notification.NewTelegramSender(telegramToken, telegramChatID)
 
-	gameService := service.NewGameService(scraper, telegram)
+	notifiedRepo := notifiedgames.NewFileNotifiedGamesRepository("notified_games.txt")
+	gameService := service.NewGameService(scraper, telegram, notifiedRepo)
 
 	scheduler := in.NewScheduler(gameService, "* * * * *")
 	err = scheduler.Start()

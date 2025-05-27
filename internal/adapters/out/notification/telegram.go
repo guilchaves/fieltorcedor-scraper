@@ -2,6 +2,7 @@ package notification
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -20,27 +21,24 @@ func NewTelegramSender(botToken string, chatID string) *TelegramSender {
 
 func (s *TelegramSender) SendNotification(game domain.Game) error {
 	message := fmt.Sprintf(
-		"Novo jogo do Corinthians!\n\n"+
-			"Adversário: %s\n"+
-			"Campeonato: %s\n"+
-			"Rodada: %s\n"+
-			"Data: %s\n"+
-			"Estádio: %s\n\n"+
-			"Categorias Disponíveis:\n",
-		game.AwayTeam,
-		game.Competition,
-		game.Round,
-		game.Date.Format("02/01/2006 15:04"),
-		game.Stadium,
+		"🦅 *Novo jogo do Corinthians\\!* 🦅\n\n"+
+			"*Adversário:* %s\n"+
+			"*Campeonato:* %s\n"+
+			"*Rodada:* %s\n"+
+			"*Data:* %s\n"+
+			"*Estádio:* %s\n\n"+
+			"*Categorias Disponíveis:*\n",
+		escapeMarkdown(game.AwayTeam),
+		escapeMarkdown(game.Competition),
+		escapeMarkdown(game.Round),
+		escapeMarkdown(game.Date.Format("02/01/2006 15:04")),
+		escapeMarkdown(game.Stadium),
 	)
 
 	for _, category := range game.Categories {
-		message += fmt.Sprintf(
-			"- %s (De %s até %s)\n",
-			category.Category,
-			category.StartTime.Format("02/01/2006 15:04"),
-			category.EndTime.Format("02/01/2006 15:04"),
-		)
+		message += "\\- " + escapeMarkdown(string(category.Category)) +
+			" \\(De " + escapeMarkdown(category.StartTime.Format("02/01/2006 15:04")) +
+			" até " + escapeMarkdown(category.EndTime.Format("02/01/2006 15:04")) + "\\)\n"
 	}
 
 	err := s.sendMessage(message)
@@ -54,19 +52,23 @@ func (s *TelegramSender) SendNotification(game domain.Game) error {
 func (s *TelegramSender) sendMessage(message string) error {
 	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", s.botToken)
 
-	encodedMessage := url.QueryEscape(message)
-	apiURL += fmt.Sprintf("?chat_id=%s&text=%s", s.chatID, encodedMessage)
+	data := url.Values{}
+	data.Set("chat_id", s.chatID)
+	data.Set("text", message)
+	data.Set("parse_mode", "MarkdownV2")
 
-	resp, err := http.Get(apiURL)
+	resp, err := http.PostForm(apiURL, data)
 	if err != nil {
 		return fmt.Errorf("falha ao fazer a requisição para a API do Telegram: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf(
-			"status code diferente de 200 ao enviar mensagem para o Telegram: %d",
+			"status code diferente de 200 ao enviar mensagem para o Telegram: %d\nCorpo da resposta: %s",
 			resp.StatusCode,
+			string(body),
 		)
 	}
 
