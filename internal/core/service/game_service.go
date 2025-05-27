@@ -25,6 +25,10 @@ func NewGameService(
 	}
 }
 
+func (s *GameService) GetAllGames() ([]domain.Game, error) {
+	return s.gameRepo.FetchGames()
+}
+
 func (s *GameService) CheckForNewGames() ([]domain.Game, error) {
 	fmt.Println("Verificando novos jogos...")
 	games, err := s.gameRepo.FetchGames()
