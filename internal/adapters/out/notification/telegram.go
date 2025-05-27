@@ -90,8 +90,7 @@ func (s *TelegramSender) SendNotificationToChat(game domain.Game, chatID string)
 			"*Campeonato:* %s\n"+
 			"*Rodada:* %s\n"+
 			"*Data:* %s\n"+
-			"*Estádio:* %s\n\n"+
-			"*Categorias Disponíveis:*\n",
+			"*Estádio:* %s\n\n",
 		escapeMarkdown(game.AwayTeam),
 		escapeMarkdown(game.Competition),
 		escapeMarkdown(game.Round),
@@ -99,13 +98,16 @@ func (s *TelegramSender) SendNotificationToChat(game domain.Game, chatID string)
 		escapeMarkdown(game.Stadium),
 	)
 
-	for _, category := range game.Categories {
-		message += fmt.Sprintf(
-			"\\- %s \\(De %s até %s\\)\n",
-			escapeMarkdown(string(category.Category)),
-			escapeMarkdown(category.StartTime.Format("02/01/2006 15:04")),
-			escapeMarkdown(category.EndTime.Format("02/01/2006 15:04")),
-		)
+	if len(game.Categories) > 0 {
+		message += "*Categorias Disponíveis:*\n"
+		for _, category := range game.Categories {
+			message += fmt.Sprintf(
+				"\\- %s \\(De %s até %s\\)\n",
+				escapeMarkdown(string(category.Category)),
+				escapeMarkdown(category.StartTime.Format("02/01/2006 15:04")),
+				escapeMarkdown(category.EndTime.Format("02/01/2006 15:04")),
+			)
+		}
 	}
 
 	return s.sendMessageToChat(message, chatID)

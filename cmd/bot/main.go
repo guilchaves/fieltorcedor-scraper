@@ -3,13 +3,13 @@ package main
 import (
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/guilchaves/fieltorcedorbot/internal/adapters/in"
 	"github.com/guilchaves/fieltorcedorbot/internal/adapters/out/fieltorcedor"
 	"github.com/guilchaves/fieltorcedorbot/internal/adapters/out/notification"
 	"github.com/guilchaves/fieltorcedorbot/internal/adapters/out/notifiedgames"
 	"github.com/guilchaves/fieltorcedorbot/internal/core/service"
+	"github.com/guilchaves/fieltorcedorbot/internal/handlers"
 	"github.com/joho/godotenv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -18,17 +18,13 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println(
-			"Erro ao carregar o arquivo .env. Variáveis de ambiente podem não estar definidas.",
-		)
+		log.Println("Erro ao carregar o arquivo .env. Variáveis de ambiente podem não estar definidas.")
 	}
 
 	telegramToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	telegramChatID := os.Getenv("TELEGRAM_CHAT_ID")
 	if telegramToken == "" || telegramChatID == "" {
-		log.Fatal(
-			"TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID devem estar definidos nas variáveis de ambiente",
-		)
+		log.Fatal("TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID devem estar definidos nas variáveis de ambiente")
 	}
 
 	siteURL := "https://www.fieltorcedor.com.br/"
@@ -38,20 +34,30 @@ func main() {
 	notifiedRepo := notifiedgames.NewFileNotifiedGamesRepository("notified_games.txt")
 	gameService := service.NewGameService(scraper, telegram, notifiedRepo)
 
-	scheduler := in.NewScheduler(gameService, "* * * * *")
-	err = scheduler.Start()
-	if err != nil {
-		log.Fatalf("Erro ao iniciar o scheduler: %v", err)
+	schedules := []struct {
+		name string
+		spec string
+	}{
+		{"11h", "0 11 * * *"},
+		{"15h", "0 15 * * *"},
+		{"17h", "0 17 * * *"},
+		{"18h", "0 18 * * *"},
 	}
 
-	dailyScheduler := in.NewScheduler(gameService, "0 11 * * *")
-	if err := dailyScheduler.Start(); err != nil {
-		log.Fatalf("erro ao iniciar o scheduler diário: %v", err)
+	for _, schedule := range schedules {
+		scheduler := in.NewScheduler(gameService, schedule.spec)
+		if err := scheduler.Start(); err != nil {
+			log.Fatalf("erro ao iniciar o scheduler das %s: %v", schedule.name, err)
+		}
+		log.Printf("Scheduler das %s iniciado com sucesso", schedule.name)
 	}
 
 	go func() {
+		log.Println("Realizando verificação inicial...")
 		if _, err := gameService.CheckForNewGames(); err != nil {
 			log.Printf("erro na verificação inicial: %v", err)
+		} else {
+			log.Println("Verificação inicial concluída com sucesso")
 		}
 	}()
 
@@ -60,6 +66,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Erro ao iniciar o bot do Telegram: %v", err)
 		}
+		log.Printf("Bot do Telegram iniciado com sucesso: @%s", bot.Self.UserName)
 		bot.Debug = false
 
 		u := tgbotapi.NewUpdate(0)
@@ -76,45 +83,22 @@ func main() {
 			}
 
 			if update.Message.IsCommand() {
+				chatID := update.Message.Chat.ID
 				switch update.Message.Command() {
 				case "start":
-					msg := tgbotapi.NewMessage(
-						update.Message.Chat.ID,
-						"Olá! Buscando jogos do Corinthians para você...",
-					)
-					bot.Send(msg)
-
-					games, err := gameService.GetAllGames()
-					if err != nil {
-						msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Erro ao buscar jogos.")
-						bot.Send(msg)
-						continue
-					}
-					if len(games) == 0 {
-						msg := tgbotapi.NewMessage(
-							update.Message.Chat.ID,
-							"Nenhum jogo encontrado.",
-						)
-						bot.Send(msg)
-						continue
-					}
-
-					for _, game := range games {
-						err := telegram.SendNotificationToChat(
-							game,
-							strconv.FormatInt(update.Message.Chat.ID, 10),
-						)
-						if err != nil {
-							log.Printf("Erro ao enviar notificação: %v", err)
-						}
-					}
+					handlers.StartHandler(bot, chatID)
+				case "jogos":
+					handlers.JogosHandler(bot, chatID, gameService, telegram)
+				case "help":
+					handlers.HelpHandler(bot, chatID)
 				default:
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Comando não reconhecido.")
+					msg := tgbotapi.NewMessage(chatID, "Comando não reconhecido.")
 					bot.Send(msg)
 				}
 			}
 		}
 	}()
 
+	log.Println("Bot iniciado e aguardando comandos...")
 	select {}
 }

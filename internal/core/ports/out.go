@@ -8,6 +8,7 @@ type GameRepository interface {
 
 type NotificationSender interface {
 	SendNotification(game domain.Game) error
+	SendNotificationToChat(game domain.Game, chatID string) error
 }
 
 type NotifiedGamesRepository interface {
