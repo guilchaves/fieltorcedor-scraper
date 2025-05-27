@@ -36,27 +36,25 @@ TELEGRAM_CHAT_ID=seu_chat_id_aqui
 
 ```bash
 go mod tidy
+```
+### 4. Execute o bot
 
-4. Execute o bot
-
-bash
-
-Copy Code
+```bash
 go run ./cmd/bot/main.go
+```
 
-O bot irá:
+O bot irá:</br>
+Fazer uma busca inicial por jogos.</br>
+Agendar buscas automáticas diárias às 11h, 15h, 17h e 18h.</br>
+Responder aos comandos do Telegram.</br>
 
-    Fazer uma busca inicial por jogos.
-    Agendar buscas automáticas diárias às 11h, 15h, 17h e 18h.
-    Responder aos comandos do Telegram.
+### 5. Comandos do Telegram
 
-5. Comandos do Telegram
+    `/start` — Mensagem de boas-vindas.</br>
+    `/jogos` — Lista todos os próximos jogos do Corinthians, com detalhes.</br>
+    `/help` — Mostra todos os comandos disponíveis.</br>
 
-    /start — Mensagem de boas-vindas.
-    /jogos — Lista todos os próximos jogos do Corinthians, com detalhes.
-    /help — Mostra todos os comandos disponíveis.
-
-6. Estrutura do Projeto
+### 6. Estrutura do Projeto
 
 internal/
   adapters/
@@ -75,11 +73,11 @@ cmd/
 .env                   # Variáveis de ambiente
 notified_games.txt     # Persistência dos jogos já notificados
 
-7. Personalização
+### 7. Personalização
 
     Para adicionar novos comandos, crie um novo handler em internal/handlers/ e registre no main.go.
     Para alterar os horários das buscas automáticas, edite os crons no main.go.
 
-8. Licença
+### 8. Licença
 
-MIT
+[MIT](https://github.com/guilchaves/fieltorcedorbot/blob/main/README.md)
