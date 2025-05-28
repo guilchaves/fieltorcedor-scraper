@@ -51,9 +51,9 @@ Responder aos comandos do Telegram.</br>
 
 ### 5. Comandos do Telegram
 
-    `/start` — Mensagem de boas-vindas.</br>
-    `/jogos` — Lista todos os próximos jogos do Corinthians, com detalhes.</br>
-    `/help` — Mostra todos os comandos disponíveis.</br>
+  `/start` — Mensagem de boas-vindas.</br>
+  `/jogos` — Lista todos os próximos jogos do Corinthians, com detalhes.</br>
+  `/help` — Mostra todos os comandos disponíveis.</br>
 
 ### 6. Estrutura do Projeto
 ```
