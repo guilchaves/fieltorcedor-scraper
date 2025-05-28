@@ -27,3 +27,6 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Compiled object files, static and dynamic libraries
+notified_games.txt
