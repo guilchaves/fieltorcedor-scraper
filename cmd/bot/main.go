@@ -23,15 +23,24 @@ func main() {
 
 	telegramToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	telegramChatID := os.Getenv("TELEGRAM_CHAT_ID")
-	if telegramToken == "" || telegramChatID == "" {
-		log.Fatal("TELEGRAM_BOT_TOKEN e TELEGRAM_CHAT_ID devem estar definidos nas variáveis de ambiente")
+	supabaseConnString := os.Getenv("SUPABASE_CONNECTION_STRING") 
+	if telegramToken == "" || telegramChatID == "" || supabaseConnString == "" {
+		log.Fatal("TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID e SUPABASE_CONNECTION_STRING devem estar definidos nas variáveis de ambiente")
 	}
 
 	siteURL := "https://www.fieltorcedor.com.br/"
 
 	scraper := fieltorcedor.NewFielTorcedorScraper(siteURL)
 	telegram := notification.NewTelegramSender(telegramToken, telegramChatID)
-	notifiedRepo := notifiedgames.NewFileNotifiedGamesRepository("notified_games.txt")
+
+	notifiedRepo, err := notifiedgames.NewSupabaseNotifiedGamesRepository(supabaseConnString)
+	if err != nil {
+		log.Fatalf("Erro ao criar repositório Supabase: %v", err)
+	}
+	if closer, ok := notifiedRepo.(interface{ Close() error }); ok {
+		defer closer.Close()
+	}
+
 	gameService := service.NewGameService(scraper, telegram, notifiedRepo)
 
 	schedules := []struct {

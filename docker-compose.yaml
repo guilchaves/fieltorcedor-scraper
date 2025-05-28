@@ -1,0 +1,13 @@
+services:
+  fieltorcedorbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fieltorcedorbot
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - SUPABASE_CONNECTION_STRING=${SUPABASE_CONNECTION_STRING}
+    # env_file:
+    #   - .env
