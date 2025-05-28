@@ -18,7 +18,7 @@ Um bot em Go para monitorar o site Fiel Torcedor e enviar notificações automá
 
 ### 1. Pré-requisitos
 
-- Go 1.18 ou superior
+- Go 1.24 ou superior
 - Uma conta de bot no Telegram ([crie com o BotFather](https://t.me/botfather))
 - Um chat ID do Telegram (pode ser seu próprio usuário ou grupo)
 - (Opcional) Docker, se quiser rodar em container
