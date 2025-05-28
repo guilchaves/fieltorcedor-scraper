@@ -56,7 +56,7 @@ Responder aos comandos do Telegram.</br>
     `/help` — Mostra todos os comandos disponíveis.</br>
 
 ### 6. Estrutura do Projeto
-
+```
 internal/
   adapters/
     in/                # Schedulers e entrada de comandos
@@ -73,7 +73,7 @@ cmd/
   bot/                 # main.go (ponto de entrada)
 .env                   # Variáveis de ambiente
 notified_games.txt     # Persistência dos jogos já notificados
-
+```
 ### 7. Personalização
 
     Para adicionar novos comandos, crie um novo handler em internal/handlers/ e registre no main.go.
