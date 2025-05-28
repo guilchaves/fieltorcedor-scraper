@@ -27,10 +27,11 @@ Um bot em Go para monitorar o site Fiel Torcedor e enviar notificações automá
 
 Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 
-
+```env
 TELEGRAM_BOT_TOKEN=seu_token_aqui
 TELEGRAM_CHAT_ID=seu_chat_id_aqui
-
+DATABASE_URL=seu_host_postgresql_aqui
+```
 
 ### 3. Instale as dependências
 
