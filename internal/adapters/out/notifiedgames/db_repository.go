@@ -9,26 +9,26 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type SupabaseNotifiedGamesRepository struct {
+type PostgresNotifiedGamesRepository struct {
 	db *sql.DB
 }
 
-func NewSupabaseNotifiedGamesRepository(connStr string) (ports.NotifiedGamesRepository, error) {
+func NewPostgresNotifiedGamesRepository(connStr string) (ports.NotifiedGamesRepository, error) {
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao conectar ao Supabase: %w", err)
+		return nil, fmt.Errorf("erro ao conectar ao banco de dados: %w", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, fmt.Errorf("erro ao pingar o Supabase: %w", err)
+		return nil, fmt.Errorf("erro ao pingar o banco de dados: %w", err)
 	}
 
-	log.Println("Conectado ao Supabase com sucesso!")
-	return &SupabaseNotifiedGamesRepository{db: db}, nil
+	log.Println("Conectado ao banco de dados PostgreSQL com sucesso!")
+	return &PostgresNotifiedGamesRepository{db: db}, nil
 }
 
-func (r *SupabaseNotifiedGamesRepository) IsGameNotified(gameID string) (bool, error) {
+func (r *PostgresNotifiedGamesRepository) IsGameNotified(gameID string) (bool, error) {
 	var count int
 	err := r.db.QueryRow("SELECT COUNT(*) FROM notified_games WHERE game_id = $1", gameID).
 		Scan(&count)
@@ -38,7 +38,7 @@ func (r *SupabaseNotifiedGamesRepository) IsGameNotified(gameID string) (bool, e
 	return count > 0, nil
 }
 
-func (r *SupabaseNotifiedGamesRepository) SaveNotifiedGame(gameID string) error {
+func (r *PostgresNotifiedGamesRepository) SaveNotifiedGame(gameID string) error {
 	_, err := r.db.Exec(
 		"INSERT INTO notified_games (game_id) VALUES ($1) ON CONFLICT (game_id) DO NOTHING",
 		gameID,
@@ -49,6 +49,6 @@ func (r *SupabaseNotifiedGamesRepository) SaveNotifiedGame(gameID string) error 
 	return nil
 }
 
-func (r *SupabaseNotifiedGamesRepository) Close() error {
+func (r *PostgresNotifiedGamesRepository) Close() error {
 	return r.db.Close()
 }

@@ -18,14 +18,14 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Erro ao carregar o arquivo .env. Variáveis de ambiente podem não estar definidas.")
+		log.Println("Arquivo .env não encontrado. Variáveis de ambiente devem estar definidas no ambiente.")
 	}
 
 	telegramToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	telegramChatID := os.Getenv("TELEGRAM_CHAT_ID")
-	supabaseConnString := os.Getenv("SUPABASE_CONNECTION_STRING") 
-	if telegramToken == "" || telegramChatID == "" || supabaseConnString == "" {
-		log.Fatal("TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID e SUPABASE_CONNECTION_STRING devem estar definidos nas variáveis de ambiente")
+	databaseURL := os.Getenv("DATABASE_URL")
+	if telegramToken == "" || telegramChatID == "" || databaseURL == "" {
+		log.Fatal("TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID e DATABASE_URL devem estar definidos nas variáveis de ambiente")
 	}
 
 	siteURL := "https://www.fieltorcedor.com.br/"
@@ -33,9 +33,9 @@ func main() {
 	scraper := fieltorcedor.NewFielTorcedorScraper(siteURL)
 	telegram := notification.NewTelegramSender(telegramToken, telegramChatID)
 
-	notifiedRepo, err := notifiedgames.NewSupabaseNotifiedGamesRepository(supabaseConnString)
+	notifiedRepo, err := notifiedgames.NewPostgresNotifiedGamesRepository(databaseURL)
 	if err != nil {
-		log.Fatalf("Erro ao criar repositório Supabase: %v", err)
+		log.Fatalf("Erro ao criar repositório PostgreSQL: %v", err)
 	}
 	if closer, ok := notifiedRepo.(interface{ Close() error }); ok {
 		defer closer.Close()
